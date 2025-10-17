@@ -30,6 +30,7 @@ build/
 
 # Env files (keep secrets out of git)
 .env
+.env.local*
 .env.local
 
 # Logs
