@@ -135,4 +135,30 @@ public class VocabController {
                     .body(Map.of("error", "Failed to update word"));
         }
     }
+
+    // delete a vocab list and all words in it
+    @DeleteMapping("/lists/{userId}/{listId}")
+    public ResponseEntity<?> deleteList(@PathVariable("userId") String userId, @PathVariable("listId") String listId) {
+        try {
+            // remove all words in the list in one repository operation
+            wordInListRepository.deleteByListId(listId);
+
+            // delete the list itself
+            Optional<VocabList> listOpt = vocabListRepository.findById(listId);
+            if (listOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "List not found"));
+            }
+
+            VocabList list = listOpt.get();
+            if (!list.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Not authorized to delete this list"));
+            }
+
+            vocabListRepository.deleteById(listId);
+            return ResponseEntity.ok(Map.of("message", "List and its words deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to delete list"));
+        }
+    }
 }
